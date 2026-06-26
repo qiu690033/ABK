@@ -5452,6 +5452,19 @@ jobs:
           cp "$SRC_DIR/Image.lz4" ./
           gzip -n -k -f -9 ./Image > ./Image.gz
 
+      - name: 复制自定义模块到 AnyKernel3
+        if: inputs.use_custom_external_modules
+        run: |
+          MODULES_SRC="$KERNEL_ROOT/bazel-bin/common/kernel_aarch64"
+          if [ -d "$MODULES_SRC" ]; then
+            mkdir -p "$ANYKERNEL3/modules"
+            find "$MODULES_SRC" -name "*.ko" -exec cp {} "$ANYKERNEL3/modules/" \; 2>/dev/null || true
+            KO_COUNT=$(find "$ANYKERNEL3/modules" -name "*.ko" 2>/dev/null | wc -l)
+            echo "已复制 $KO_COUNT 个 .ko 模块到 AnyKernel3/modules/"
+          else
+            echo "未找到 bazel-bin 输出目录，跳过模块复制"
+          fi
+
       - name: 创建 AnyKernel3 压缩包
         run: |
           cd $ANYKERNEL3
